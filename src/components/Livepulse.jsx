@@ -1,19 +1,23 @@
-import { useRealtimeAttendance } from "../lib/useRealtimeAttendance";
+import { useRealtimeAttendance } from "../lib/Userealtimeattendance";
 
-export default function LivePulse({ dateStr }) {
-  const { liveCount, connected } = useRealtimeAttendance(dateStr);
+export default function LivePulse({ date }) {
+  const { liveCount, connected } = useRealtimeAttendance(date);
 
   return (
-    <div className="flex items-center gap-2 rounded-full border border-white/[0.06] bg-[#161927] pl-3 pr-4 py-1.5 w-fit">
-      <span className="relative flex h-2.5 w-2.5">
+    <div className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#161927] px-4 py-2">
+      <span className="relative flex h-2 w-2">
         <span
-          className={`absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 ${
-            connected ? "animate-ping" : ""
+          className={`absolute inline-flex h-full w-full rounded-full ${
+            connected ? "animate-ping bg-emerald-400/40" : "bg-white/10"
           }`}
         />
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400" />
+        <span
+          className={`relative inline-flex h-2 w-2 rounded-full ${
+            connected ? "bg-emerald-400" : "bg-white/20"
+          }`}
+        />
       </span>
-      <span className="text-sm text-white/80 font-mono tabular-nums">
+      <span className="font-mono text-xs text-white/70">
         {liveCount} checked in right now
       </span>
     </div>
