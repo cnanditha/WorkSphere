@@ -1,99 +1,101 @@
-import { useEffect, useState, useCallback } from "react";
-import StatsStrip from "../components/StatsStrip";
-import LivePulse from "../components/LivePulse";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 import EmployeeList from "../components/EmployeeList";
-import AttendanceOverview from "../components/AttendanceOverview";
-import {
-  getAllEmployees,
-  getAttendanceByDate,
-  getTodayStats,
-} from "../lib/adminQueries";
+import AttendanceOverviewTable from "../components/AttendanceOverviewTable";
 
-function todayStr() {
+function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function StatCard({ label, value, accent }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className={`mt-1 text-2xl font-semibold ${accent || "text-slate-900"}`}>{value}</p>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
-  const [date, setDate] = useState(todayStr());
-  const [employees, setEmployees] = useState([]);
-  const [attendance, setAttendance] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loadingAttendance, setLoadingAttendance] = useState(true);
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadEmployees = useCallback(async () => {
-    try {
-      setEmployees(await getAllEmployees());
-    } catch (err) {
-      setError(err.message);
-    }
-  }, []);
-
-  const loadAttendance = useCallback(async (d) => {
-    setLoadingAttendance(true);
-    try {
-      setAttendance(await getAttendanceByDate(d));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoadingAttendance(false);
-    }
-  }, []);
-
-  const loadStats = useCallback(async (d) => {
-    setLoadingStats(true);
-    try {
-      setStats(await getTodayStats(d));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoadingStats(false);
-    }
-  }, []);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [stats, setStats] = useState({
+    totalEmployees: null,
+    present: null,
+    absent: null,
+    onLeave: null,
+  });
 
   useEffect(() => {
-    loadEmployees();
-  }, [loadEmployees]);
+    let isMounted = true;
 
-  useEffect(() => {
-    loadAttendance(date);
-    loadStats(date);
-  }, [date, loadAttendance, loadStats]);
+    async function fetchStats() {
+      const date = todayISO();
+
+      const [totalRes, presentRes, absentRes, leaveRes] = await Promise.all([
+        supabase.from("users").select("id", { count: "exact", head: true }).eq("role", "employee"),
+        supabase
+          .from("attendance")
+          .select("id", { count: "exact", head: true })
+          .eq("date", date)
+          .eq("status", "Present"),
+        supabase
+          .from("attendance")
+          .select("id", { count: "exact", head: true })
+          .eq("date", date)
+          .eq("status", "Absent"),
+        supabase
+          .from("attendance")
+          .select("id", { count: "exact", head: true })
+          .eq("date", date)
+          .eq("status", "Leave"),
+      ]);
+
+      if (!isMounted) return;
+
+      setStats({
+        totalEmployees: totalRes.count ?? 0,
+        present: presentRes.count ?? 0,
+        absent: absentRes.count ?? 0,
+        onLeave: leaveRes.count ?? 0,
+      });
+    }
+
+    fetchStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#0D0F19] text-white">
-      <header className="border-b border-white/[0.06] px-6 py-5 flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-amber-400/80">
-            Admin / HR
+    <div className="min-h-screen bg-slate-50 px-6 py-8">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-6">
+          <h1 className="text-xl font-semibold text-slate-900">Admin Dashboard</h1>
+          <p className="text-sm text-slate-500">
+            Employee directory and attendance, across the whole team.
           </p>
-          <h1 className="text-xl font-semibold mt-1">
-            Dayflow — Team Overview
-          </h1>
-        </div>
-        <LivePulse dateStr={date} />
-      </header>
+        </header>
 
-      <main className="px-6 py-6 flex flex-col gap-6 max-w-7xl mx-auto">
-        {error && (
-          <div className="rounded-lg border border-rose-400/30 bg-rose-400/10 text-rose-300 text-sm px-4 py-3">
-            Couldn't load dashboard data: {error}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-6">
+          <StatCard label="Total employees" value={stats.totalEmployees ?? "—"} />
+          <StatCard label="Present today" value={stats.present ?? "—"} accent="text-emerald-600" />
+          <StatCard label="Absent today" value={stats.absent ?? "—"} accent="text-rose-600" />
+          <StatCard label="On leave today" value={stats.onLeave ?? "—"} accent="text-amber-600" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <EmployeeList
+              onSelectEmployee={setSelectedEmployee}
+              selectedEmployeeId={selectedEmployee?.id}
+            />
           </div>
-        )}
-
-        <StatsStrip stats={stats} loading={loadingStats} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <EmployeeList employees={employees} attendanceToday={attendance} />
-          <AttendanceOverview
-            date={date}
-            onDateChange={setDate}
-            attendance={attendance}
-            loading={loadingAttendance}
-          />
+          <div className="lg:col-span-2">
+            <AttendanceOverviewTable employeeId={selectedEmployee?.id ?? null} />
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
