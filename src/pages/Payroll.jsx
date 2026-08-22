@@ -2,33 +2,26 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 /**
- * Payroll (read-only, employee view)
+ * NOTE: no `payroll` table in the current schema — salary breakdown
+ * below is static/dummy data by design. Employee name/email pulled
+ * from `users` is real.
  *
- * NOTE: there's no `payroll` table in the current schema (users / attendance /
- * leaves only), and per the team's own breakdown this is meant to be static/
- * dummy data rather than a real query — that's what keeps this page "moderate"
- * instead of hard. The employee's name/email/role are pulled from `users` (real),
- * the salary breakdown below is placeholder data.
+ * Formula used (salaried employee):
+ *   Net Pay = Gross Salary + Bonus − Deductions
  *
- * If a real `payroll` table gets added later (e.g. employee_id, basic, hra,
- * deductions, net_pay, month), swap MOCK_PAYSLIP for a supabase query the same
- * way LeaveForm/AttendanceOverview do it.
+ * If you switch to hourly employees later, swap grossSalary for
+ * hourlyRate * hoursWorked and the rest of the math stays the same:
+ *   Net Pay = (Hourly Rate × Hours Worked) + Bonus − Deductions
  */
-
 const MOCK_PAYSLIP = {
   month: "August 2026",
-  basic: 45000,
-  hra: 12000,
-  allowances: 5000,
+  grossSalary: 58000,
+  bonus: 4000,
   deductions: 3200,
 };
 
 function currency(n) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(n);
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 }
 
 export default function Payroll() {
@@ -54,19 +47,11 @@ export default function Payroll() {
         return;
       }
 
-      const { data, error: fetchError } = await supabase
-        .from("users")
-        .select("name, email, role")
-        .eq("id", uid)
-        .single();
+      const { data, error: fetchError } = await supabase.from("users").select("name, email, role").eq("id", uid).single();
 
       if (!isMounted) return;
-
-      if (fetchError) {
-        setError(fetchError.message);
-      } else {
-        setProfile(data);
-      }
+      if (fetchError) setError(fetchError.message);
+      else setProfile(data);
       setLoading(false);
     }
 
@@ -76,60 +61,60 @@ export default function Payroll() {
     };
   }, []);
 
-  const net =
-    MOCK_PAYSLIP.basic + MOCK_PAYSLIP.hra + MOCK_PAYSLIP.allowances - MOCK_PAYSLIP.deductions;
+  const { grossSalary, bonus, deductions } = MOCK_PAYSLIP;
+  const netPay = grossSalary + bonus - deductions;
 
   return (
-    <div className="min-h-screen bg-slate-50 px-6 py-8">
+    <div className="min-h-screen bg-black px-6 py-8">
       <div className="mx-auto max-w-2xl space-y-6">
         <header>
-          <h1 className="text-xl font-semibold text-slate-900">Payroll</h1>
-          <p className="text-sm text-slate-500">Read-only — contact HR for corrections.</p>
+          <h1 className="text-xl font-semibold text-white">Payroll</h1>
+          <p className="text-sm text-gray-400">Read-only — contact HR for corrections.</p>
         </header>
 
         {error && (
-          <div className="rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
+          <div className="rounded-lg bg-rose-500/10 border border-rose-500/30 px-4 py-3 text-sm text-rose-400">
             {error}
           </div>
         )}
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div className="px-6 py-5 border-b border-slate-100">
-            <p className="text-sm text-slate-500">
-              {loading ? "Loading…" : profile?.name || "—"}
-            </p>
-            <p className="text-xs text-slate-400">{loading ? "" : profile?.email}</p>
-            <h2 className="mt-2 text-base font-semibold text-slate-900">
-              Payslip · {MOCK_PAYSLIP.month}
-            </h2>
+        <div className="bg-gray-950 rounded-xl border border-gray-800 shadow-sm">
+          <div className="px-6 py-5 border-b border-gray-800">
+            <p className="text-sm text-gray-400">{loading ? "Loading…" : profile?.name || "—"}</p>
+            <p className="text-xs text-gray-500">{loading ? "" : profile?.email}</p>
+            <h2 className="mt-2 text-base font-semibold text-white">Payslip · {MOCK_PAYSLIP.month}</h2>
           </div>
 
           <div className="px-6 py-4 space-y-3">
-            <Row label="Basic salary" value={currency(MOCK_PAYSLIP.basic)} />
-            <Row label="HRA" value={currency(MOCK_PAYSLIP.hra)} />
-            <Row label="Other allowances" value={currency(MOCK_PAYSLIP.allowances)} />
-            <Row label="Deductions" value={`− ${currency(MOCK_PAYSLIP.deductions)}`} negative />
+            <Row label="Gross salary" value={currency(grossSalary)} />
+            <Row label="Bonus" value={`+ ${currency(bonus)}`} positive />
+            <Row label="Deductions" value={`− ${currency(deductions)}`} negative />
           </div>
 
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-900">Net pay</span>
-            <span className="text-lg font-semibold text-emerald-700">{currency(net)}</span>
+          <div className="px-6 py-4 border-t border-gray-800 flex items-center justify-between">
+            <span className="text-sm font-semibold text-white">Net pay</span>
+            <span className="text-lg font-semibold text-emerald-400">{currency(netPay)}</span>
+          </div>
+
+          <div className="px-6 py-3 border-t border-gray-800">
+            <p className="text-xs text-gray-500 font-mono text-center">
+              Net Pay = Gross Salary + Bonus − Deductions
+            </p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-400">
-          Figures shown are placeholder values for demo purposes.
-        </p>
+        <p className="text-xs text-gray-500">Figures shown are placeholder values for demo purposes.</p>
       </div>
     </div>
   );
 }
 
-function Row({ label, value, negative }) {
+function Row({ label, value, negative, positive }) {
+  const color = negative ? "text-rose-400" : positive ? "text-emerald-400" : "text-gray-100";
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-slate-500">{label}</span>
-      <span className={negative ? "text-rose-600" : "text-slate-900"}>{value}</span>
+      <span className="text-gray-400">{label}</span>
+      <span className={color}>{value}</span>
     </div>
   );
 }
