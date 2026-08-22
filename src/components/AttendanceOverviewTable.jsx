@@ -97,18 +97,23 @@ export default function AttendanceOverview({
           </p>
         )}
         {!loading &&
-          filtered.map((row) => (
-            <div key={row.id} className="flex items-center gap-4 px-4 py-3">
-              <span className="w-32 shrink-0 text-sm text-white/80 truncate">
-                {row.users?.name ?? row.employee_id}
-              </span>
-              <RhythmStrip
-                status={row.status}
-                checkIn={row.check_in}
-                checkOut={row.check_out}
-              />
-            </div>
-          ))}
+  filtered.map((row) => {
+    const isLate =
+      row.check_in && new Date(row.check_in).getUTCHours() + 5.5 >= 10; // IST offset
+    return (
+      <div key={row.id} className="flex items-center gap-4 px-4 py-3">
+        <span className="w-32 shrink-0 text-sm text-white/80 truncate">
+          {row.users?.name ?? row.employee_id}
+        </span>
+        <RhythmStrip status={row.status} checkIn={row.check_in} checkOut={row.check_out} />
+        {isLate && (
+          <span className="shrink-0 rounded-full border border-rose-400/30 bg-rose-400/10 px-2 py-0.5 text-[10px] font-medium text-rose-400">
+            Late
+          </span>
+        )}
+      </div>
+    );
+  })}
       </div>
     </div>
   );
