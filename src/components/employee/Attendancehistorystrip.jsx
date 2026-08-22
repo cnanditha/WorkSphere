@@ -28,13 +28,9 @@ export default function AttendanceHistoryStrip({ userId, days = 14 }) {
   return (
     <div className="rounded-xl border border-[#E4E2DC] bg-white p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#14161A]">
-          Last {days} Days
-        </h3>
+        <h3 className="text-sm font-semibold text-[#14161A]">Last {days} Days</h3>
         {!loading && (
-          <span className="font-mono text-xs text-[#8A8778]">
-            {presentCount}/{rows.length} present
-          </span>
+          <span className="font-mono text-xs text-[#8A8778]">{presentCount}/{rows.length} present</span>
         )}
       </div>
 
@@ -50,9 +46,7 @@ export default function AttendanceHistoryStrip({ userId, days = 14 }) {
               title={`${r.date}: ${r.status}`}
               className="flex flex-col items-center gap-1"
             >
-              <span
-                className={`h-3 w-3 rounded-sm ${DOT_COLOR[r.status] ?? "bg-[#E4E2DC]"}`}
-              />
+              <span className={`h-3 w-3 rounded-sm ${DOT_COLOR[r.status] ?? "bg-[#E4E2DC]"}`} />
               <span className="font-mono text-[10px] text-[#8A8778]">
                 {new Date(r.date).getDate()}
               </span>

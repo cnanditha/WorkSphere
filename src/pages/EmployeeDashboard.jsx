@@ -5,8 +5,6 @@ import CheckInOutCard from "../components/employee/CheckInOutCard";
 import AttendanceHistoryStrip from "../components/employee/AttendanceHistoryStrip";
 import LeaveSummaryCard from "../components/employee/LeaveSummaryCard";
 
-// TODO(B): replace with real auth context once A wires up Supabase Auth.
-// For now this expects `userId` and `userName` props from the router/auth wrapper.
 export default function EmployeeDashboard({ userId, userName = "there" }) {
   const [now] = useState(new Date());
 
@@ -23,40 +21,25 @@ export default function EmployeeDashboard({ userId, userName = "there" }) {
             </h1>
           </div>
           <p className="font-mono text-xs text-[#8A8778]">
-            {now.toLocaleDateString([], {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-            })}
+            {now.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })}
           </p>
         </header>
 
-        {/* Quick-access cards */}
         <nav className="mb-6 grid grid-cols-3 gap-3">
-          <a
-            href="/profile"
-            className="rounded-xl border border-[#E4E2DC] bg-white p-4 text-center hover:border-[#2954E5]"
-          >
+          <a href="/profile" className="rounded-xl border border-[#E4E2DC] bg-white p-4 text-center transition hover:border-[#2954E5] hover:shadow-sm">
             <p className="text-sm font-medium text-[#14161A]">Profile</p>
             <p className="text-xs text-[#8A8778]">View & edit</p>
           </a>
-          <a
-            href="/attendance"
-            className="rounded-xl border border-[#E4E2DC] bg-white p-4 text-center hover:border-[#2954E5]"
-          >
-            <p className="text-sm font-medium text-[#14161A]">Attendance</p>
-            <p className="text-xs text-[#8A8778]">Check history</p>
-          </a>
-          <a
-            href="/leave"
-            className="rounded-xl border border-[#E4E2DC] bg-white p-4 text-center hover:border-[#2954E5]"
-          >
+          <a href="/leave" className="rounded-xl border border-[#E4E2DC] bg-white p-4 text-center transition hover:border-[#2954E5] hover:shadow-sm">
             <p className="text-sm font-medium text-[#14161A]">Leave Requests</p>
             <p className="text-xs text-[#8A8778]">Apply / track</p>
           </a>
+          <a href="/payroll" className="rounded-xl border border-[#E4E2DC] bg-white p-4 text-center transition hover:border-[#2954E5] hover:shadow-sm">
+            <p className="text-sm font-medium text-[#14161A]">Payroll</p>
+            <p className="text-xs text-[#8A8778]">View details</p>
+          </a>
         </nav>
 
-        {/* Main grid */}
         <div className="grid gap-4 md:grid-cols-2">
           <CheckInOutCard userId={userId} />
           <LeaveSummaryCard userId={userId} />

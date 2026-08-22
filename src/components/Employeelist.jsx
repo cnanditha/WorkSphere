@@ -8,7 +8,7 @@ const STATUS_DOT = {
   Unmarked: "bg-white/20",
 };
 
-export default function EmployeeList({ employees, attendanceToday }) {
+export default function EmployeeList({ employees = [], attendanceToday = [] }) {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 

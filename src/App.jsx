@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import LeaveForm from "./pages/LeaveForm";
 import LeaveApproval from "./pages/LeaveApproval";
 import Payroll from "./pages/Payroll";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -15,12 +16,25 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/employee" element={<EmployeeDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/leave" element={<LeaveForm />} />
-        <Route path="/leave-approval" element={<LeaveApproval />} />
-        <Route path="/payroll" element={<Payroll />} />
+
+        <Route path="/employee" element={
+          <ProtectedRoute allowedRole="employee"><EmployeeDashboard /></ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute><Profile /></ProtectedRoute>
+        } />
+        <Route path="/leave" element={
+          <ProtectedRoute allowedRole="employee"><LeaveForm /></ProtectedRoute>
+        } />
+        <Route path="/leave-approval" element={
+          <ProtectedRoute allowedRole="admin"><LeaveApproval /></ProtectedRoute>
+        } />
+        <Route path="/payroll" element={
+          <ProtectedRoute><Payroll /></ProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );

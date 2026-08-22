@@ -1,18 +1,10 @@
 // src/components/employee/CheckInOutCard.jsx
 import { useEffect, useState } from "react";
-import {
-  checkIn,
-  checkOut,
-  fetchTodayAttendance,
-  subscribeToMyAttendance,
-} from "../../lib/employeeApi";
+import { checkIn, checkOut, fetchTodayAttendance, subscribeToMyAttendance } from "../../lib/employeeApi";
 
 function formatTime(ts) {
   if (!ts) return "—";
-  return new Date(ts).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 function formatDuration(startISO) {
@@ -92,20 +84,12 @@ export default function CheckInOutCard({ userId }) {
         <>
           <div className="mb-4 grid grid-cols-2 gap-3">
             <div>
-              <p className="text-[11px] font-mono uppercase tracking-wide text-[#8A8778]">
-                Check-in
-              </p>
-              <p className="font-mono text-xl font-semibold text-[#14161A]">
-                {formatTime(record?.check_in)}
-              </p>
+              <p className="text-[11px] font-mono uppercase tracking-wide text-[#8A8778]">Check-in</p>
+              <p className="font-mono text-xl font-semibold text-[#14161A]">{formatTime(record?.check_in)}</p>
             </div>
             <div>
-              <p className="text-[11px] font-mono uppercase tracking-wide text-[#8A8778]">
-                Check-out
-              </p>
-              <p className="font-mono text-xl font-semibold text-[#14161A]">
-                {formatTime(record?.check_out)}
-              </p>
+              <p className="text-[11px] font-mono uppercase tracking-wide text-[#8A8778]">Check-out</p>
+              <p className="font-mono text-xl font-semibold text-[#14161A]">{formatTime(record?.check_out)}</p>
             </div>
           </div>
 
@@ -114,11 +98,7 @@ export default function CheckInOutCard({ userId }) {
               On the clock · {formatDuration(record.check_in)}
             </p>
           )}
-          {isDone && (
-            <p className="mb-4 text-xs text-[#8A8778]">
-              Day complete. See you tomorrow 👋
-            </p>
-          )}
+          {isDone && <p className="mb-4 text-xs text-[#8A8778]">Day complete. See you tomorrow 👋</p>}
 
           {error && <p className="mb-3 text-xs text-[#E5484D]">{error}</p>}
 
