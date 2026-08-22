@@ -78,7 +78,7 @@ export default function Payroll() {
           </div>
         )}
 
-        <div className="bg-gray-950 rounded-xl border border-gray-800 shadow-sm">
+        <div className="bg-gray-950 rounded-xl border border-gray-800 shadow-sm animate-fadeInUp">
           <div className="px-6 py-5 border-b border-gray-800">
             <p className="text-sm text-gray-400">{loading ? "Loading…" : profile?.name || "—"}</p>
             <p className="text-xs text-gray-500">{loading ? "" : profile?.email}</p>
